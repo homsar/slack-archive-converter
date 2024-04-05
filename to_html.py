@@ -87,6 +87,7 @@ files = defaultdict(dict)
 
 user_details["USLACKBOT"] = {"name": "Slackbot", "avatar": "avatars/slackbot.png"}
 
+
 def add_wget(source, dest, f=None):
     to_close = False
     if not f:
@@ -98,6 +99,7 @@ def add_wget(source, dest, f=None):
     if to_close:
         f.close()
 
+
 def get_deets(user, profile):
     filename = f"{profile['avatar_hash']}.jpg"
     path = f"avatars/{filename}"
@@ -106,6 +108,7 @@ def get_deets(user, profile):
     detail = user_details[user]
     detail["avatar"] = path
     detail["name"] = profile["name"]
+
 
 def get_file(message_file):
     detail = files[message_file["id"]]
@@ -132,12 +135,14 @@ def get_file(message_file):
 
 def complete_block(content, current_user_content, current_user, current_dt):
     if current_user_content:
-        content.append(messageblock_template.format(
-            avatar=user_details[current_user]["avatar"],
-            username=user_details[current_user]["name"],
-            timestamp=current_dt.strftime("%H:%M:%S %Z"),
-            messages="\n".join(current_user_content),
-        ))
+        content.append(
+            messageblock_template.format(
+                avatar=user_details[current_user]["avatar"],
+                username=user_details[current_user]["name"],
+                timestamp=current_dt.strftime("%H:%M:%S %Z"),
+                messages="\n".join(current_user_content),
+            )
+        )
 
 
 def format_message(message_text):
@@ -147,12 +152,12 @@ def format_message(message_text):
     start = 0
     components = []
     for token in finditer("<[^<>]*>", message_text):
-        components.append(escape(message_text[start:token.start()]))
+        components.append(escape(message_text[start : token.start()]))
         match len(split_token := token.group().strip("<>").split("|")):
             case 0:
                 components.append(escape("<>"))
             case 1:
-                target, = split_token
+                (target,) = split_token
                 if target.startswith("@"):
                     components.append(f'<span class="username">{target}</span>')
                 elif target.startswith("http"):
@@ -170,8 +175,6 @@ def format_message(message_text):
         components.append(message_text[start:])
 
     return "".join(components)
-
-
 
 
 current_dt = None
@@ -204,8 +207,7 @@ for message in messages:
         message_text = format_message(message["text"])
         current_user_content.append(
             message_template.format(
-                message=message_text,
-                timestamp=dt.strftime("%H:%M %Z")
+                message=message_text, timestamp=dt.strftime("%H:%M %Z")
             )
         )
 
@@ -213,21 +215,25 @@ for message in messages:
         get_file(message_file)
         file_details = files[message_file["id"]]
         if message_file["mimetype"].startswith("image"):
-            current_user_content.append(imagemessage_template.format(
-                target=file_details["path"],
-                image=file_details["path"],
-                alt=message_file["title"],
-                timestamp=dt.strftime("%H:%M %Z"),
-                notes="",
-            ))
+            current_user_content.append(
+                imagemessage_template.format(
+                    target=file_details["path"],
+                    image=file_details["path"],
+                    alt=message_file["title"],
+                    timestamp=dt.strftime("%H:%M %Z"),
+                    notes="",
+                )
+            )
         else:
-            current_user_content.append(imagemessage_template.format(
-                target=file_details["path"],
-                image=file_details["thumb_path"],
-                alt=message_file["title"],
-                timestamp=dt.strftime("%H:%M %Z"),
-                notes=f"<i>{message_file['title']} &ndash; {message_file['filetype'].upper()} attachment:</i> ",
-            ))
+            current_user_content.append(
+                imagemessage_template.format(
+                    target=file_details["path"],
+                    image=file_details["thumb_path"],
+                    alt=message_file["title"],
+                    timestamp=dt.strftime("%H:%M %Z"),
+                    notes=f"<i>{message_file['title']} &ndash; {message_file['filetype'].upper()} attachment:</i> ",
+                )
+            )
 else:
     complete_block(content, current_user_content, current_user, current_dt)
 
