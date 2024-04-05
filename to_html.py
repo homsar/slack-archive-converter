@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from argparse import ArgumentParser, FileType
 from collections import defaultdict
 from datetime import datetime, timezone
 from glob import glob
@@ -8,6 +9,13 @@ import json
 from re import finditer
 
 import pytz
+
+parser = ArgumentParser()
+parser.add_argument(
+    "--output_file", default=open("index.html", "w"), type=FileType("w")
+)
+parser.add_argument("input_json", nargs="+")
+args = parser.parse_args()
 
 takeoff_time = datetime(2024, 3, 17, 20, 00).astimezone()
 land_time = datetime(2024, 4, 2, 18, 37).astimezone()
@@ -22,7 +30,7 @@ with open("wget.sh", "w") as f:
 
 messages = []
 
-for filename in sorted(glob("*.json")):
+for filename in args.input_json:
     with open(filename, "r") as f:
         messages.extend(json.loads(f.read()))
 
@@ -237,5 +245,4 @@ for message in messages:
 else:
     complete_block(content, current_user_content, current_user, current_dt)
 
-with open("japan-2024.html", "w") as f:
-    print(page_template.format(content="\n".join(content)), file=f)
+print(page_template.format(content="\n".join(content)), file=args.output_file)
