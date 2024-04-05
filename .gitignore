@@ -1,0 +1,9 @@
+*.json
+*.html
+/images
+/images_old
+/avatars
+/avatars_old
+/files
+/files_old
+wget.sh
